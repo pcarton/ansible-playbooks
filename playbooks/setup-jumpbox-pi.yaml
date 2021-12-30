@@ -1,0 +1,112 @@
+---
+- name: Configure RaspberryPi Jumpbox
+  hosts: jumpboxes
+  vars:
+    apt_packages:
+      - tmux
+      - bat
+      - git
+      - zsh
+
+  roles:
+    - hardenSSH
+
+  tasks:
+    - name: Install apt Packages
+      become: yes
+      apt:
+        name: "{{ apt_packages }}"
+        state: present
+        update_cache: yes
+
+    - name: Update Cache and Upgrade all Packages
+      register: updatesys
+      become: yes
+      apt:
+        name: "*"
+        state: latest
+        update_cache: yes
+
+    - name: Display the last line of the previous task to check the stats
+      debug:
+        msg:  "{{updatesys.stdout_lines|last}}"
+
+    - name: Check for OhMyZSH Existing
+      stat:
+        path: /home/pi/.oh-my-zsh
+      register: check_zsh
+
+    - name: Set shell to ZSH
+      become: yes
+      user:
+        name: pi
+        shell: /bin/zsh
+      when: not check_zsh.stat.exists
+
+    - name: Get OhMyZSH Install Script
+      become: yes
+      get_url:
+        url: https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh
+        dest: /tmp/zsh-install.sh
+      when: not check_zsh.stat.exists
+
+    - name: Set install script permissions
+      become: yes
+      ansible.builtin.file:
+        path: /tmp/zsh-install.sh
+        state: touch
+        mode: a+rx
+      when: not check_zsh.stat.exists
+
+    - name: Install OhMyZSH
+      ansible.builtin.shell:
+        cmd: sh /tmp/zsh-install.sh --unattended
+      when: not check_zsh.stat.exists
+
+    - name: Check for .tmux dir Existing
+      stat:
+        path: /home/pi/.tmux
+      register: check_dot_tmux
+
+    - name: Checkout gpakosz's .tmux Repo
+      ansible.builtin.git:
+        repo: 'https://github.com/gpakosz/.tmux.git'
+        dest: /home/pi/.tmux
+      when: not check_dot_tmux.stat.exists
+
+    - name: Create a symbolic link for .tmux.conf
+      ansible.builtin.file:
+        src: /home/pi/.tmux/.tmux.conf
+        dest: /home/pi/.tmux.conf
+        owner: pi
+        state: link
+      when: not check_dot_tmux.stat.exists
+
+    - name: Copy .tmux.conf.local To pi Home
+      ansible.builtin.copy:
+        remote_src: yes
+        src: /home/pi/.tmux/.tmux.conf.local
+        dest: /home/pi/.tmux.conf.local
+        owner: pi
+      when: not check_dot_tmux.stat.exists
+
+    - name: Get Terraform ARM Binary
+      become: yes
+      get_url:
+        url: https://releases.hashicorp.com/terraform/1.1.2/terraform_1.1.2_linux_arm.zip
+        dest: /tmp/terraform_1.1.2_linux_arm.zip
+
+    - name: Unzip Terraform ARM Binary
+      ansible.builtin.unarchive:
+        remote_src: yes
+        src:  /tmp/terraform_1.1.2_linux_arm.zip
+        dest:  /tmp/
+
+    - name: Move Terraform ARM Binary to path
+      ansible.builtin.copy:
+        remote_src: yes
+        src: /tmp/terraform
+        dest: /usr/local/bin/terraform
+        owner: pi
+        mode: a+x
+      become: yes
