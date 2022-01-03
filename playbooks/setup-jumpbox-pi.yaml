@@ -13,6 +13,7 @@
 
   roles:
     - hardenSSH
+    - authWithGithub
 
   tasks:
     - name: Install apt Packages
@@ -135,4 +136,3 @@
       ansible.builtin.git:
         repo: 'https://github.com/pcarton/ansible-playbooks.git'
         dest: /home/pi/ansible-playbooks
-

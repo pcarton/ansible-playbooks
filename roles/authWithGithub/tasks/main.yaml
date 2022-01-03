@@ -1,0 +1,18 @@
+---
+- name: Validate Key Exists
+  stat:
+    path: "/home/{{ ansible_user }}/.ssh/id_ssh_rsa.pub"
+  register: check_ssh_key
+
+- name: Read SSH public key to authorize
+  ansible.builtin.shell: "cat /home/{{ ansible_user }}/.ssh/id_ssh_rsa.pub"
+  register: ssh_pub_key
+  when: check_ssh_key.stat.exists
+
+- name: Authorize key with GitHub
+  local_action:
+    module: github_key
+    name: "Access Key for {{ inventory_hostname }}"
+    token: '{{ github_access_token }}'
+    pubkey: '{{ ssh_pub_key.stdout }}'
+  when: check_ssh_key.stat.exists
