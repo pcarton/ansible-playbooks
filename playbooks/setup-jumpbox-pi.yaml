@@ -7,6 +7,7 @@
       - bat
       - git
       - zsh
+      - neofetch
 
   roles:
     - hardenSSH
@@ -90,17 +91,24 @@
         owner: pi
       when: not check_dot_tmux.stat.exists
 
+    - name: Check for existing terraform install
+      stat:
+        path: /usr/local/bin/terraform
+      register: check_terraform
+
     - name: Get Terraform ARM Binary
       become: yes
       get_url:
         url: https://releases.hashicorp.com/terraform/1.1.2/terraform_1.1.2_linux_arm.zip
         dest: /tmp/terraform_1.1.2_linux_arm.zip
+      when: not check_terraform.stat.exists
 
     - name: Unzip Terraform ARM Binary
       ansible.builtin.unarchive:
         remote_src: yes
         src:  /tmp/terraform_1.1.2_linux_arm.zip
         dest:  /tmp/
+      when: not check_terraform.stat.exists
 
     - name: Move Terraform ARM Binary to path
       ansible.builtin.copy:
@@ -110,3 +118,19 @@
         owner: pi
         mode: a+x
       become: yes
+      when: not check_terraform.stat.exists
+
+    - name: Insert/Update .zshrc File With TMUX at SSH Login
+      blockinfile:
+        path: /home/pi/.zshrc
+        backup: yes
+        block: |
+          if [[ -n "$PS1" ]] && [[ -z "$TMUX" ]] && [[ -n "$SSH_CONNECTION" ]]; then
+            tmux attach-session -t ssh_tmux || tmux new-session -s ssh_tmux
+          fi
+
+    - name: Checkout This Playbook On Remote
+      ansible.builtin.git:
+        repo: 'https://github.com/pcarton/ansible-playbooks.git'
+        dest: /home/pi/ansible-playbooks
+
