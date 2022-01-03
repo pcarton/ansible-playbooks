@@ -8,6 +8,8 @@
       - git
       - zsh
       - neofetch
+      - ansible
+      - sshpass
 
   roles:
     - hardenSSH
