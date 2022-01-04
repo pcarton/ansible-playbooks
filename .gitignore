@@ -1,2 +1,3 @@
 inventories/*
 roles/checkoutPersonalGithubRepos
+roles/setSecretValues

@@ -10,11 +10,13 @@
       - neofetch
       - ansible
       - sshpass
+      - s3cmd
 
   roles:
     - hardenSSH
     - authWithGithub
     - checkoutPersonalGithubRepos
+    - setSecretValues
 
   tasks:
     - name: Install apt Packages
