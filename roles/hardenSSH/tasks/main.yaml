@@ -12,7 +12,7 @@
     line: "PermitRootLogin no"
     state: present
   notify:
-    - restart sshd
+    - restart_sshd
   become: yes
 
 - name: Disable password login
@@ -22,9 +22,12 @@
     line: "PasswordAuthentication no"
     state: present
   notify:
-    - restart sshd
+    - restart_sshd
   become: yes
 
 - name: Generate an OpenSSH keypair with the default values (4096 bits, rsa)
   community.crypto.openssh_keypair:
     path: "/home/{{ ansible_user }}/.ssh/id_ssh_rsa"
+
+- name: Flush handlers
+  meta: flush_handlers
