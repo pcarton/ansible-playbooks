@@ -35,6 +35,7 @@
         state: latest
         update_cache: yes
         cache_valid_time: 3600
+      timeout: 600
 
     - name: Display the last line of the previous task to check the stats
       debug:
