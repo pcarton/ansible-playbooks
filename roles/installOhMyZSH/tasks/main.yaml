@@ -1,0 +1,42 @@
+---
+- name: Check for OhMyZSH Existing
+  stat:
+    path: "/home/{{ ansible_user }}/.oh-my-zsh"
+  register: check_zsh
+
+- name: Install apt Packages
+  become: yes
+  apt:
+    name: 
+      - git
+      - zsh
+    state: present
+    update_cache: yes
+  when: not check_zsh.stat.exists
+
+- name: Set shell to ZSH
+  become: yes
+  user:
+    name: "{{ ansible_user }}"
+    shell: /bin/zsh
+  when: not check_zsh.stat.exists
+
+- name: Get OhMyZSH Install Script
+  become: yes
+  get_url:
+    url: https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh
+    dest: /tmp/zsh-install.sh
+  when: not check_zsh.stat.exists
+
+- name: Set install script permissions
+  become: yes
+  ansible.builtin.file:
+    path: /tmp/zsh-install.sh
+    state: touch
+    mode: a+rx
+  when: not check_zsh.stat.exists
+
+- name: Install OhMyZSH
+  ansible.builtin.shell:
+    cmd: sh /tmp/zsh-install.sh --unattended
+  when: not check_zsh.stat.exists

@@ -1,0 +1,36 @@
+---
+- name: Check for .tmux dir Existing
+  stat:
+    path: "/home/{{ ansible_user }}/.tmux"
+  register: check_dot_tmux
+
+- name: Install apt Packages
+  become: yes
+  apt:
+    name: 
+      - tmux
+    state: present
+    update_cache: yes
+  when: not check_dot_tmux.stat.exists
+
+- name: Checkout gpakosz's .tmux Repo
+  ansible.builtin.git:
+    repo: 'https://github.com/gpakosz/.tmux.git'
+    dest: "/home/{{ ansible_user }}/.tmux"
+  when: not check_dot_tmux.stat.exists
+
+- name: Create a symbolic link for .tmux.conf
+  ansible.builtin.file:
+    src: "/home/{{ ansible_user }}/.tmux/.tmux.conf"
+    dest: "/home/{{ ansible_user }}/.tmux.conf"
+    owner: "{{ ansible_user }}"
+    state: link
+  when: not check_dot_tmux.stat.exists
+
+- name: Copy .tmux.conf.local To User Home
+  ansible.builtin.copy:
+    remote_src: yes
+    src: "/home/{{ ansible_user }}/.tmux/.tmux.conf.local"
+    dest: "/home/{{ ansible_user }}/.tmux.conf.local"
+    owner: "{{ ansible_user }}"
+  when: not check_dot_tmux.stat.exists
