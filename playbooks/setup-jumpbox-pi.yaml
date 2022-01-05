@@ -78,8 +78,3 @@
           if [[ -n "$PS1" ]] && [[ -z "$TMUX" ]] && [[ -n "$SSH_CONNECTION" ]]; then
             tmux attach-session -t ssh_tmux || tmux new-session -s ssh_tmux
           fi
-
-    - name: Checkout This Playbook On Remote
-      ansible.builtin.git:
-        repo: 'https://github.com/pcarton/ansible-playbooks.git'
-        dest: /home/pi/ansible-playbooks
