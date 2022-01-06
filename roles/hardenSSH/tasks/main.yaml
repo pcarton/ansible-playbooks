@@ -29,5 +29,34 @@
   community.crypto.openssh_keypair:
     path: "/home/{{ ansible_user }}/.ssh/id_ssh_rsa"
 
+- name: Install apt fail2ban Packages
+  apt: 
+    name:
+      - fail2ban
+      - sendmail
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+  become: yes
+
+- name: Configure jail.local File
+  blockinfile:
+    path: /etc/fail2ban/jail.local
+    backup: yes
+    create: yes
+    block: |
+      [sshd]
+      enabled = true
+      filter = sshd
+      port = ssh
+      banaction = iptables-multiport
+      bantime = -1
+      maxretry = 3
+      logpath = %(sshd_log)s
+      backend = %(sshd_backend)s
+  become: yes
+  notify:
+    - restart_fail2ban
+
 - name: Flush handlers
   meta: flush_handlers
