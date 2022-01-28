@@ -1,0 +1,6 @@
+---
+- name: Configure Linodes
+  hosts: linodes
+  roles:
+    - passwordlessSudo
+    - hardenSSH
