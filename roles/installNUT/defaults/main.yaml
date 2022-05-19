@@ -1,0 +1,6 @@
+nut_services:
+  - nut-driver
+  - nut-monitor
+  - nut-server
+
+nut_enable_service: true
