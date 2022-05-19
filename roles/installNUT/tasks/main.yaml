@@ -24,13 +24,6 @@
   when: not check_ups_conf.stat.exists
   become: yes
 
-- name: Template to /etc/nut/ups.conf
-  ansible.builtin.template:
-    src: templates/ups.conf.j2
-    dest: /etc/nut/ups.conf
-    mode: '0644'
-  become: yes
-
 - name: Check if original upsmon.conf has been saved
   stat:
     path: /etc/nut/upsmon.conf.orig
@@ -43,13 +36,6 @@
     remote_src: yes
     mode: '0644'
   when: not check_upsmon_conf.stat.exists
-  become: yes
-
-- name: Template to /etc/nut/upsmon.conf
-  ansible.builtin.template:
-    src: templates/upsmon.conf.j2
-    dest: /etc/nut/upsmon.conf
-    mode: '0644'
   become: yes
 
 - name: Check if original upsd.conf has been saved
@@ -66,13 +52,6 @@
   when: not check_upsd_conf.stat.exists
   become: yes
 
-- name: Template to /etc/nut/upsd.conf
-  ansible.builtin.template:
-    src: templates/upsd.conf.j2
-    dest: /etc/nut/upsd.conf
-    mode: '0644'
-  become: yes
-
 - name: Check if original nut.conf has been saved
   stat:
     path: /etc/nut/nut.conf.orig
@@ -85,13 +64,6 @@
     remote_src: yes
     mode: '0644'
   when: not check_nut_conf.stat.exists
-  become: yes
-
-- name: Template to /etc/nut/nut.conf
-  ansible.builtin.template:
-    src: templates/nut.conf.j2
-    dest: /etc/nut/nut.conf
-    mode: '0644'
   become: yes
 
 - name: Check if original upsd.users has been saved
@@ -108,9 +80,26 @@
   when: not check_upsd_users.stat.exists
   become: yes
 
-- name: Template to /etc/nut/upsd.users
-  ansible.builtin.template:
-    src: templates/upsd.users.j2
-    dest: /etc/nut/upsd.users
-    mode: '0644'
+- name: Install NUT configuration files.
+  template:
+    src: "templates/{{ item }}.j2"
+    dest: "/etc/nut/{{ item }}"
+    owner: root
+    group: nut
+    mode: 0640
+  with_items:
+    - nut.conf
+    - ups.conf
+    - upsd.users
+    - upsd.conf
+    - upsmon.conf
   become: yes
+
+
+- name: restart nut
+  ansible.builtin.service:
+    name: "{{ item }}"
+    state: restarted
+  with_items: "{{ nut_services }}"
+  when: nut_enable_service
+  become: true
