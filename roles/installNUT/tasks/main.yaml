@@ -80,13 +80,13 @@
   when: not check_upsd_users.stat.exists
   become: yes
 
-- name: Install NUT configuration files.
+- name: Install NUT conf and user files
   template:
     src: "templates/{{ item }}.j2"
     dest: "/etc/nut/{{ item }}"
     owner: root
     group: nut
-    mode: 0640
+    mode: 0644
   with_items:
     - nut.conf
     - ups.conf
@@ -94,12 +94,4 @@
     - upsd.conf
     - upsmon.conf
   become: yes
-
-
-- name: restart nut
-  ansible.builtin.service:
-    name: "{{ item }}"
-    state: restarted
-  with_items: "{{ nut_services }}"
-  when: nut_enable_service
-  become: true
+  notify: restart nut
