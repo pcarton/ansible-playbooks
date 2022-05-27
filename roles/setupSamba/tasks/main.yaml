@@ -41,7 +41,7 @@
     path: /etc/samba/smb.conf
     backup: yes
     block: |
-      [Share]
+      [{{ share_name }}]
         comment = Share on the Data Pool
         path = {{ data_share_dir }}
         read only = no

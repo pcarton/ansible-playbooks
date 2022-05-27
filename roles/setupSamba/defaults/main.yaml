@@ -1,3 +1,4 @@
 data_share_dir: "/mnt/data/share"
 samba_system_user: "smbuser"
 samba_system_uid: 151
+share_name: Share
