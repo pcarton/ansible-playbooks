@@ -1,0 +1,59 @@
+---
+- name: Install samba related packages
+  apt: 
+    name:
+      - samba
+      - net-tools
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+  become: yes
+
+- name: Add the Samba System User
+  ansible.builtin.user:
+    name: "{{ samba_system_user }}"
+    comment: "Samba System User"
+    uid: "{{ samba_system_uid }}"
+    system: yes
+    state: present
+  notify: restart samba
+  become: yes
+
+
+- name: set Samba password for Samba Users
+  shell: "printf '{{ item.passwd }}\n{{ item.passwd }}\n' | smbpasswd -a {{ item.name }}"
+  with_items:
+  - "{{ users }}"
+  tags: smbpasswd
+  notify: restart samba
+  become: yes
+
+- name: Create data share directory
+  ansible.builtin.file:
+    path: "{{ data_share_dir }}"
+    state: directory
+    owner: "{{ samba_system_user }}"
+  notify: restart samba
+  become: yes
+
+- name: Configure samba.conf File
+  blockinfile:
+    path: /etc/samba/samba.conf
+    backup: yes
+    create: yes
+    block: |
+      [Share]
+        comment = Share on the Data Pool
+        path = {{ data_share_dir }}
+        read only = no
+        writeable = yes
+        browsable = yes
+        force user = {{ samba_system_user }}
+  notify: restart samba
+  become: yes
+
+- name: Allow Samba in UFW
+  community.general.ufw:
+    rule: allow
+    name: samba
+  become: yes
