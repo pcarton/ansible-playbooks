@@ -36,11 +36,10 @@
   notify: restart samba
   become: yes
 
-- name: Configure samba.conf File
+- name: Configure smb.conf File
   blockinfile:
-    path: /etc/samba/samba.conf
+    path: /etc/samba/smb.conf
     backup: yes
-    create: yes
     block: |
       [Share]
         comment = Share on the Data Pool
