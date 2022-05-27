@@ -1,6 +1,30 @@
 ---
 - name: Configure Linodes
   hosts: linodes
+  vars:
+    apt_packages:
+      - certbot
+      - ufw
+      - python3-certbot-nginx
   roles:
     - passwordlessSudo
     - hardenSSH
+
+  tasks:
+    - name: Update Cache and Upgrade all Packages
+      register: updatesys
+      become: yes
+      apt:
+        name: "*"
+        state: latest
+        update_cache: yes
+        cache_valid_time: 3600
+      timeout: 600
+
+    - name: Install apt Packages
+      become: yes
+      apt:
+        name: "{{ apt_packages }}"
+        state: present
+        update_cache: yes
+        cache_valid_time: 3600

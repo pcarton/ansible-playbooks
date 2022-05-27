@@ -14,6 +14,7 @@
   notify:
     - restart_sshd
   become: yes
+  when: disable_root_login
 
 - name: Disable password login
   lineinfile:
@@ -24,6 +25,12 @@
   notify:
     - restart_sshd
   become: yes
+
+- name: Create users .ssh directory if it doesnt exist
+  ansible.builtin.file:
+    path: "/home/{{ ansible_user }}/.ssh"
+    state: directory
+    owner: "{{ ansible_user }}"
 
 - name: Generate an OpenSSH keypair with the default values (4096 bits, rsa)
   community.crypto.openssh_keypair:
