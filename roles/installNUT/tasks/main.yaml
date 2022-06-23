@@ -95,3 +95,15 @@
     - upsmon.conf
   become: yes
   notify: restart nut
+
+- name: Install TrippLite Device Fix
+  template:
+    src: "templates/{{ item }}.j2"
+    dest: "/etc/udev/rules.d/{{ item }}"
+    owner: root
+    group: nut
+    mode: 0644
+  with_items:
+    - 99-nut-ups.rules
+  become: yes
+  notify: restart nut
